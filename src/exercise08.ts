@@ -4,10 +4,25 @@ export type EventMap = {
 };
 
 export class SimpleEventEmitter<T extends EventMap> {
+  private listeners: {
+    [K in keyof T]?: Array<(data: T[K]) => void>;
+  } = {};
+
   public on<K extends keyof T>(
     eventName: K,
     callback: (data: T[K]) => void,
-  ): void {}
+  ): void {
+    if (!this.listeners[eventName]) {
+      this.listeners[eventName] = [];
+    }
+    this.listeners[eventName]!.push(callback);
+  }
 
-  public emit<K extends keyof T>(eventName: K, data: T[K]): void {}
+  public emit<K extends keyof T>(eventName: K, data: T[K]): void {
+    const handlers = this.listeners[eventName];
+    if (!handlers) return;
+    for (const handler of handlers) {
+      handler(data);
+    }
+  }
 }
